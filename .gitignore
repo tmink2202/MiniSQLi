@@ -58,3 +58,7 @@ secrets.*
 *.swo
 .DS_Store
 Thumbs.db
+
+# Local project roadmap/notes
+ROADMAP.md
+
