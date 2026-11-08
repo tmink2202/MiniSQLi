@@ -1,28 +1,29 @@
 # SQLi Audit Tool
 
-Công cụ dòng lệnh (CLI) phục vụ rà quét, đo lường và đánh giá lỗ hổng SQL Injection (SQLi) trên các ứng dụng web trong môi trường kiểm thử nội bộ. Dự án đi kèm một môi trường thực nghiệm (Testbed) sử dụng Flask và PostgreSQL để đối chứng độ chính xác giữa các điểm giao tiếp có lỗ hổng (Vulnerable) và an toàn (Safe).
+Công cụ dòng lệnh (CLI) phục vụ rà quét, đo lường và phát hiện lỗ hổng SQL Injection (SQLi) trên các ứng dụng web trong môi trường kiểm thử nội bộ. Công cụ tập trung vào việc nhận diện điểm yếu bảo mật (Detection) và cung cấp khuyến nghị khắc phục (Remediation) thay vì khai thác trích xuất dữ liệu. Dự án đi kèm một môi trường thực nghiệm (Testbed) sử dụng Flask và PostgreSQL để đối chứng độ chính xác giữa các điểm giao tiếp có lỗ hổng (Vulnerable) và an toàn (Safe).
 
 ## Mục đích
 
-- Chuẩn hóa quy trình thu thập thông số phản hồi cơ sở (Baseline HTTP probing) trước khi thực hiện kiểm thử.
-- Cung cấp kiến trúc tách biệt giữa tầng giao tiếp mạng (`core`), các bộ phát hiện lỗ hổng (`detectors`), cơ sở dữ liệu dấu hiệu nhận diện (`signatures`) và xuất báo cáo (`reporting`).
-- Thiết lập môi trường kiểm thử cục bộ có kiểm soát nhằm đánh giá tỷ lệ phát hiện đúng (True Positive) và kiểm soát cảnh báo giả (False Positive) đối với các kỹ thuật:
-  - **Error-based SQLi**: Nhận diện qua thông báo lỗi trả về từ hệ quản trị cơ sở dữ liệu (DBMS).
-  - **Boolean-based Blind SQLi**: Nhận diện qua sự thay đổi trạng thái hoặc độ dài nội dung phản hồi.
-  - **Time-based Blind SQLi**: Nhận diện qua độ trễ thời gian xử lý truy vấn (`elapsed_ms`).
+- Chuẩn hóa quy trình phân tích điểm đầu vào (Query, Form, JSON, Header) và thu thập thông số phản hồi cơ sở (Baseline HTTP probing) trước khi kiểm thử.
+- Cung cấp kiến trúc tách biệt giữa tầng giao tiếp mạng và phân tích (`core`), các bộ phát hiện lỗ hổng (`detectors`), cơ sở dữ liệu dấu hiệu nhận diện (`signatures`) và xuất báo cáo kèm hướng dẫn vá lỗi (`reporting`).
+- Thiết lập môi trường kiểm thử cục bộ có kiểm soát nhằm đánh giá tỷ lệ phát hiện đúng (True Positive) và kiểm soát cảnh báo giả (False Positive) đối với 4 kỹ thuật SQLi điển hình:
+  - **Error-based SQLi**: Nhận diện qua thông báo lỗi cú pháp và định danh hệ quản trị cơ sở dữ liệu (DBMS Fingerprinting).
+  - **UNION-based SQLi**: Xác định cấu trúc cột và khả năng ghép nối kết quả truy vấn (In-band UNION) bằng các hằng số kiểm thử an toàn.
+  - **Boolean-based Blind SQLi**: Nhận diện qua sự sai lệch nội dung hoặc cấu trúc DOM giữa điều kiện logic Đúng và Sai (Diffing Engine).
+  - **Time-based Blind SQLi**: Nhận diện qua phân tích thống kê độ trễ thời gian phản hồi (`elapsed_ms`) có đối chiếu với độ lệch chuẩn của Baseline.
 
 ## Cấu trúc dự án
 
 ```text
 .
 ├── requirements.txt        # Danh sách thư viện phụ thuộc
-├── signatures/             # Mẫu nhận diện lỗi DBMS và cấu hình payload
+├── signatures/             # Mẫu nhận diện lỗi DBMS (Regex signatures)
 ├── src/
 │   ├── cli.py              # Giao diện dòng lệnh chính (Typer)
 │   ├── core/
 │   │   └── client.py       # HTTP client chuẩn hóa đo lường phản hồi (httpx)
-│   ├── detectors/          # Các module kiểm thử Error-based, Boolean-based, Time-based
-│   └── reporting/          # Module tổng hợp kết quả và xuất báo cáo
+│   ├── detectors/          # Các module kiểm thử Error, UNION, Boolean, Time-based
+│   └── reporting/          # Module tổng hợp kết quả và khuyến nghị khắc phục
 ├── testbed/
 │   ├── app.py              # Ứng dụng Flask mô phỏng các endpoint Vulnerable và Safe
 │   └── setup_db.sql        # Kịch bản khởi tạo cơ sở dữ liệu PostgreSQL tối thiểu quyền
