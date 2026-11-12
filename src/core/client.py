@@ -28,6 +28,7 @@ class AuditHttpClient:
         url: str,
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None
     ) -> HttpResponseData:
         """Gửi HTTP request và chuẩn hóa dữ liệu đo lường trả về."""
@@ -38,6 +39,7 @@ class AuditHttpClient:
                 url=url,
                 params=params,
                 data=data,
+                json=json_data,
                 headers=headers
             )
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0

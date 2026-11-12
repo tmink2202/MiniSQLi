@@ -21,13 +21,17 @@ Công cụ dòng lệnh (CLI) phục vụ rà quét, đo lường và phát hi�
 ├── src/
 │   ├── cli.py              # Giao diện dòng lệnh chính (Typer)
 │   ├── core/
-│   │   └── client.py       # HTTP client chuẩn hóa đo lường phản hồi (httpx)
+│   │   ├── client.py       # HTTP client chuẩn hóa đo lường phản hồi (httpx)
+│   │   ├── crawler.py      # Bộ thu thập tự động Endpoint & Form (BeautifulSoup4)
+│   │   ├── parser.py       # Bộ bóc tách tham số (Query, Form, JSON, Cookie, Header)
+│   │   └── baseline.py     # Đo lường Baseline (2-3 mẫu) và kiểm tra Heuristic
 │   ├── detectors/          # Các module kiểm thử Error, UNION, Boolean, Time-based
 │   └── reporting/          # Module tổng hợp kết quả và khuyến nghị khắc phục
 ├── testbed/
 │   ├── app.py              # Ứng dụng Flask mô phỏng các endpoint Vulnerable và Safe
 │   └── setup_db.sql        # Kịch bản khởi tạo cơ sở dữ liệu PostgreSQL tối thiểu quyền
 └── tests/                  # Unit tests và integration tests (pytest)
+    └── test_week2.py       # Kiểm thử tự động cho Crawler, Parser, Baseline & Heuristic
 ```
 
 ## Cơ chế hoạt động
@@ -104,6 +108,26 @@ python -m src.cli probe --url "http://127.0.0.1:5000/vuln/error/products?categor
 Các tùy chọn:
 - `-u`, `--url` (Bắt buộc): Địa chỉ URL mục tiêu cần kiểm tra.
 - `-t`, `--timeout` (Mặc định: `10.0`): Thời gian chờ phản hồi tối đa tính bằng giây.
+
+### Tự động thu thập Endpoint (`crawl`)
+
+Thu thập toàn bộ liên kết (`<a href>`) và biểu mẫu (`<form>`) có tham số trong cùng miền (Same-Origin):
+
+```bash
+python -m src.cli crawl --url "http://127.0.0.1:5000/" --crawl-depth 2
+```
+
+### Phân tích tham số, đo Baseline và kiểm tra Heuristic (`analyze`)
+
+Phân tích một URL cụ thể hoặc kết hợp `--crawl` để tự động thu thập mọi endpoint, bóc tách tham số, đo thông số chuẩn (Baseline) và thử nghiệm các ký tự đóng/mở chuỗi cơ bản:
+
+```bash
+# Phân tích một endpoint đơn lẻ
+python -m src.cli analyze --url "http://127.0.0.1:5000/vuln/error/products?category=books"
+
+# Tự động crawl toàn bộ trang đích và chạy phân tích Heuristic trên từng endpoint
+python -m src.cli analyze --url "http://127.0.0.1:5000/" --crawl
+```
 
 ## Lưu ý pháp lý và Bảo mật
 

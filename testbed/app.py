@@ -9,6 +9,32 @@ def get_db_conn():
     # autocommit=True giúp tránh lỗi kẹt transaction (InFailedSqlTransaction) khi test
     return psycopg.connect(DB_DSN, autocommit=True)
 
+@app.route("/")
+def index():
+    """Trang chủ HTML cung cấp liên kết và biểu mẫu tới các endpoint phục vụ kiểm thử Web Crawler."""
+    return (
+        """<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="utf-8"><title>SQLi Audit Local Testbed</title></head>
+<body>
+    <h1>SQLi Audit Local Testbed</h1>
+    <h2>Danh sách liên kết (Links)</h2>
+    <ul>
+        <li><a href="/vuln/error/products?category=books">Vulnerable Error-based Products</a></li>
+        <li><a href="/vuln/blind/article?id=1">Vulnerable Blind Article</a></li>
+        <li><a href="/safe/products?category=books">Safe Parameterized Products</a></li>
+        <li><a href="/safe/article?id=1">Safe Validated Article</a></li>
+    </ul>
+    <h2>Biểu mẫu tìm kiếm (Forms)</h2>
+    <form action="/vuln/error/products" method="GET">
+        <input type="text" name="category" value="books" />
+        <input type="submit" value="Search" />
+    </form>
+</body>
+</html>""",
+        200,
+    )
+
 # ==========================================
 # NHÓM 1: ENDPOINT MÔ PHỎNG LỖI (VULNERABLE)
 # ==========================================
